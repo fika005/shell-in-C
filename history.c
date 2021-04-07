@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdio.h>
 
 #include "history.h"
 
@@ -20,7 +21,7 @@ void hist_add(const char *cmd)
 
 void hist_print(void)
 {
-
+    fflush(stdout);
 }
 
 const char *hist_search_prefix(char *prefix)
@@ -42,3 +43,4 @@ unsigned int hist_last_cnum(void)
     // TODO: Retrieve the most recent command number.
     return 0;
 }
+

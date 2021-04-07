@@ -2,13 +2,23 @@
 #include <readline/readline.h>
 #include <locale.h>
 #include <stdlib.h>
-
+#include <stdbool.h>
+#include <string.h>
 #include "history.h"
 #include "logger.h"
+#include <unistd.h>
 #include "ui.h"
+#define USR_MAX 100
+#define PATH_MAX 200
 
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
+static bool scripting = false;
+char *line = NULL;
+size_t line_sz = 0;
+char user_name[USR_MAX];
+char host_name[_SC_HOST_NAME_MAX + 1];
+char *cwd_final = NULL;
 
 static int readline_init(void);
 
@@ -19,18 +29,24 @@ void init_ui(void)
     char *locale = setlocale(LC_ALL, "en_US.UTF-8");
     LOG("Setting locale: %s\n",
             (locale != NULL) ? locale : "could not set locale!");
-
+    if (isatty(STDIN_FILENO) == false) {
+        LOGP("Entering scripting mode\n");
+        scripting = true;
+    }
     rl_startup_hook = readline_init;
 }
 
 void destroy_ui(void)
 {
-    // TODO cleanup code, if necessary
+    if (line != NULL) {
+    	free(line);
+    }
+    free(prompt_cwd());
 }
 
 char *prompt_line(void)
 {
-    const char *status = prompt_status() ? good_str : bad_str;
+    const char *status = prompt_status() ? bad_str : good_str;
 
     char cmd_num[25];
     snprintf(cmd_num, 25, "%d", prompt_cmd_num());
@@ -64,17 +80,39 @@ char *prompt_line(void)
 
 char *prompt_username(void)
 {
-    return "unknown_user";
+    getlogin_r(user_name, USR_MAX);
+    return user_name;
 }
 
 char *prompt_hostname(void)
 {
-    return "unknown_host";
+    gethostname(host_name, _SC_HOST_NAME_MAX + 1);
+    return host_name;
 }
 
 char *prompt_cwd(void)
 {
-    return "/unknown/path";
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, PATH_MAX) != NULL) {
+        char * usr_name = prompt_username();
+        size_t user_name_len = strlen(usr_name);
+        // home is /home/user_name so 7 more chars than user_name
+        size_t home_path_len = user_name_len + 7;
+        char *home_path = malloc(sizeof(char) * home_path_len);
+        snprintf(home_path, home_path_len, "/home/%s", usr_name);
+        size_t cwd_len = strlen(cwd);
+        int contains_home = cwd_len < home_path_len ? false : memcmp(home_path, cwd, home_path_len - 1); 
+        if (contains_home  == 0) {
+            size_t new_cwd_len = 1 + (int) cwd_len - (int) home_path_len;
+            cwd_final = malloc(sizeof(char) * new_cwd_len);
+            snprintf(cwd_final, new_cwd_len, "~%s", &cwd[home_path_len - 1]); 
+        }
+        free(home_path);
+        return cwd_final;
+    } else {
+       perror("getcwd() error");
+       return NULL;
+    }
 }
 
 int prompt_status(void)
@@ -89,10 +127,21 @@ unsigned int prompt_cmd_num(void)
 
 char *read_command(void)
 {
-    char *prompt = prompt_line();
-    char *command = readline(prompt);
-    free(prompt);
-    return command;
+    if (scripting == false) {
+        char *prompt = prompt_line();
+        char *command = readline(prompt);
+        free(prompt);
+        return command;
+    } else {
+        ssize_t read_sz = getline(&line, &line_sz, stdin);
+        if (read_sz == -1) {
+            perror("getline");
+        } else {
+            line[read_sz - 1] = '\0';
+            return line;
+        }
+    }
+    
 }
 
 int readline_init(void)
@@ -133,3 +182,4 @@ int key_down(int count, int key)
 
     return 0;
 }
+

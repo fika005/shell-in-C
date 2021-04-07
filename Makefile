@@ -7,7 +7,7 @@ LOGGER ?= 1
 # Compiler/linker flags
 CFLAGS += -g -Wall -fPIC -DLOGGER=$(LOGGER)
 LDLIBS += -lm -lreadline
-LDFLAGS +=
+LDFLAGS += -L. -Wl,-rpath='$$ORIGIN'
 
 src=history.c shell.c ui.c
 obj=$(src:.c=.o)
@@ -20,8 +20,8 @@ $(bin): $(obj)
 libshell.so: $(obj)
 	$(CC) $(CFLAGS) $(LDLIBS) $(LDFLAGS) $(obj) -shared -o $@
 
-shell.o: shell.c history.h logger.h ui.h
-history.o: history.c history.h logger.h
+shell.o: shell.c history.h logger.h ui.h elist.h util.h
+history.o: history.c history.h logger.h clist.h
 ui.o: ui.h ui.c logger.h history.h
 
 clean:
