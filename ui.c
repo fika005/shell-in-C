@@ -97,15 +97,18 @@ char *prompt_cwd(void)
         char * usr_name = prompt_username();
         size_t user_name_len = strlen(usr_name);
         // home is /home/user_name so 7 more chars than user_name
-        size_t home_path_len = user_name_len + 7;
-        char *home_path = malloc(sizeof(char) * home_path_len);
-        snprintf(home_path, home_path_len, "/home/%s", usr_name);
+        size_t home_path_len = user_name_len + 6;
+        char *home_path = malloc(sizeof(char) * (home_path_len + 1));
+        snprintf(home_path, home_path_len + 1, "/home/%s", usr_name);
         size_t cwd_len = strlen(cwd);
-        int contains_home = cwd_len < home_path_len ? false : memcmp(home_path, cwd, home_path_len - 1); 
+        int contains_home = cwd_len < home_path_len ? false : memcmp(home_path, cwd, home_path_len); 
         if (contains_home  == 0) {
-            size_t new_cwd_len = 1 + (int) cwd_len - (int) home_path_len;
-            cwd_final = malloc(sizeof(char) * new_cwd_len);
-            snprintf(cwd_final, new_cwd_len, "~%s", &cwd[home_path_len - 1]); 
+            size_t new_cwd_len = 2 + (int) cwd_len - (int) home_path_len;
+            if (cwd_final != NULL) {
+		free(cwd_final);
+            }
+            cwd_final = malloc(sizeof(char) * (new_cwd_len + 1));
+            snprintf(cwd_final, new_cwd_len, "~%s", &cwd[home_path_len]); 
         }
         free(home_path);
         return cwd_final;

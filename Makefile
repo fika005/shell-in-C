@@ -9,7 +9,7 @@ CFLAGS += -g -Wall -fPIC -DLOGGER=$(LOGGER)
 LDLIBS += -lm -lreadline
 LDFLAGS += -L. -Wl,-rpath='$$ORIGIN'
 
-src=history.c shell.c ui.c
+src=history.c shell.c ui.c util.c elist.c clist.c
 obj=$(src:.c=.o)
 
 all: $(bin) libshell.so
