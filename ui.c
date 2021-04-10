@@ -17,7 +17,7 @@
 #include "ui.h"
 #define USR_MAX 100
 #define PATH_MAX 200
-extern struct clist *list;
+ // used this global variable to set the last command status
 extern int last_cmd_status;
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
@@ -166,7 +166,7 @@ int readline_init(void)
 
 int key_up(int count, int key)
 {
-    int max = list->insertions > list->capacity ? list->capacity : list->insertions;
+    int max = hist_max();
     if (key_up_count < max) {
 	key_up_count++;
     }

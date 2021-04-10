@@ -22,7 +22,6 @@
 #define HIST_LIM 100
 static size_t num_children = 0;
 static bool running = true;
-bool last_status = 0;
 int last_cmd_status = 0;
 
 void jobs_sigchld() {
@@ -55,6 +54,7 @@ int process_builtins(char *command, struct elist *list) {
 }
 
 void process_command(char *command, struct elist *list) {
+    bool is_bg = false;
     LOG("Input command: %s\n", command);
     char *cmd = command;
     next_token(&cmd, "#");
@@ -80,6 +80,10 @@ void process_command(char *command, struct elist *list) {
     }
 
     char *command_copy = strdup(command);
+    if (command[strlen(command) - 1] == '&') {
+	is_bg = true;
+	command[strlen(command) - 1] = '\0';
+    }
     char *next_tok = command;
     char *curr_tok;
     while ((curr_tok = next_token(&next_tok, " \t\n")) != NULL) {
@@ -91,10 +95,13 @@ void process_command(char *command, struct elist *list) {
     if (elist_size(list) == 1) {
 	LOGP("Empty command\n");
 	elist_clear(list);
+	free(command_copy);
 	return;
     }
     if (command[0] != '!') {
 	hist_add(command_copy);
+    } else {
+        free(command_copy);
     }
     if (process_builtins(command, list) == 0) {
 	elist_clear(list);
@@ -114,9 +121,11 @@ void process_command(char *command, struct elist *list) {
 	    exit(1);
 	}
     } else {
-	int status;
-	wait(&status);
-	last_cmd_status = status;
+	if (!is_bg) {
+	    int status;
+	    wait(&status);
+	    last_cmd_status = status;
+	}
 	elist_clear(list);
     }
 

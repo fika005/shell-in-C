@@ -74,3 +74,6 @@ int hist_last_cnum(void)
     return list->insertions;
 }
 
+int hist_max(void) {
+    return list->insertions > list->capacity ? list->capacity : list->insertions;
+}

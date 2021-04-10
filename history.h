@@ -6,7 +6,7 @@
 
 #ifndef _HISTORY_H_
 #define _HISTORY_H_
-extern struct clist *list;
+
 /**
  * Initializes the history management module and sets the number of history
  * items to be retained
@@ -63,5 +63,11 @@ const char *hist_search_cnum(int command_number);
  * the array index, but rather the monotonically increasing command number.
  */
 int hist_last_cnum(void);
+
+/**
+ * Retrieves the max number you can go up in history before reaching the end.
+ */
+int hist_max(void);
+
 
 #endif
