@@ -1,6 +1,12 @@
+/**
+ * @file
+ *
+ * Contains shell history data structures and retrieval functions.
+ */
 #include <stddef.h>
 #include <stdio.h>
-#include<stdlib.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "history.h"
 #include "clist.h"
@@ -26,7 +32,7 @@ void hist_add(const char *cmd)
 void hist_print(void)
 {
     struct clist_iterator iter = clist_create_iter();
-    int num = 0;
+    int num = 1;
     void *elem;
     while ((elem = clist_iterate_rev(list, &iter)) != NULL) {
         char *command = *((char **) elem);
@@ -39,19 +45,30 @@ void hist_print(void)
 
 const char *hist_search_prefix(char *prefix)
 {
-    // TODO: Retrieves the most recent command starting with 'prefix', or NULL
-    // if no match found.
+    struct clist_iterator iter = clist_create_iter();
+    void *elem;
+    while ((elem = clist_iterate(list, &iter)) != NULL) {
+        char *command = *((char **) elem);
+        if (strncmp(command, prefix, strlen(prefix)) == 0) {
+	    return command;
+	}
+    }
     return NULL;
 }
 
 const char *hist_search_cnum(int command_number)
 {
-    char *command = *((char **) clist_get(list, command_number));
-    return command;
+    void *elem = clist_get(list, command_number - 1);
+    if (elem != NULL) {
+	char *command = *((char **) elem);
+	return command;
+    } else {
+	return NULL;
+    }
 }
 
-unsigned int hist_last_cnum(void)
+int hist_last_cnum(void)
 {
-    return list->insertions - 1;
+    return list->insertions;
 }
 

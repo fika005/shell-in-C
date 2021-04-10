@@ -1,3 +1,8 @@
+/**
+ * @file
+ *
+ * Contains circular array structure to hold the history of commands.
+ */
 #ifndef _CLIST_H_
 #define _CLIST_H_
 

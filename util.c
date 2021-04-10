@@ -1,3 +1,8 @@
+/**
+ * @file
+ *
+ * Utility file to contain some util functions mainly the tokenizer.
+ */
 #include <string.h>
 #include <stdio.h>
 

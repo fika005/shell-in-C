@@ -1,3 +1,8 @@
+/**
+ * @file
+ *
+ * Contains circular array structure to hold history of commands.
+ */
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>

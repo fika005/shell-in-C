@@ -1,3 +1,8 @@
+/**
+ * @file
+ *
+ * Implements the elastic list data structure to hold command tokens
+ */
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>

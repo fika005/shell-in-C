@@ -7,6 +7,10 @@
 #ifndef _HISTORY_H_
 #define _HISTORY_H_
 
+struct command_run {
+     int status;
+     char* command;
+};
 /**
  * Initializes the history management module and sets the number of history
  * items to be retained
@@ -62,6 +66,6 @@ const char *hist_search_cnum(int command_number);
  * Retrieves the 'command number' of the last command. Note that this is *NOT*
  * the array index, but rather the monotonically increasing command number.
  */
-unsigned int hist_last_cnum(void);
+int hist_last_cnum(void);
 
 #endif

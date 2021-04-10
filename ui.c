@@ -1,3 +1,9 @@
+/**
+ * @file
+ *
+ * Text-based UI functionality. These functions are primarily concerned with
+ * interacting with the readline library.
+ */
 #include <stdio.h>
 #include <readline/readline.h>
 #include <locale.h>
@@ -89,28 +95,27 @@ char *prompt_hostname(void)
     gethostname(host_name, _SC_HOST_NAME_MAX + 1);
     return host_name;
 }
-
 char *prompt_cwd(void)
 {
     char cwd[PATH_MAX];
     if (getcwd(cwd, PATH_MAX) != NULL) {
-        char * usr_name = prompt_username();
-        size_t user_name_len = strlen(usr_name);
-        // home is /home/user_name so 7 more chars than user_name
-        size_t home_path_len = user_name_len + 6;
-        char *home_path = malloc(sizeof(char) * (home_path_len + 1));
-        snprintf(home_path, home_path_len + 1, "/home/%s", usr_name);
+	char *home_path = getenv("HOME");
+	size_t home_path_len = strlen(home_path);
         size_t cwd_len = strlen(cwd);
-        int contains_home = cwd_len < home_path_len ? false : memcmp(home_path, cwd, home_path_len); 
-        if (contains_home  == 0) {
+        if (strncmp(cwd, home_path, home_path_len) == 0) {
             size_t new_cwd_len = 2 + (int) cwd_len - (int) home_path_len;
             if (cwd_final != NULL) {
 		free(cwd_final);
             }
             cwd_final = malloc(sizeof(char) * (new_cwd_len + 1));
             snprintf(cwd_final, new_cwd_len, "~%s", &cwd[home_path_len]); 
-        }
-        free(home_path);
+        } else {
+	    if (cwd_final != NULL) {
+                 free(cwd_final);
+            }
+             cwd_final = malloc(sizeof(char) * (cwd_len + 1));
+	     strcpy(cwd_final, cwd);
+	}
         return cwd_final;
     } else {
        perror("getcwd() error");
