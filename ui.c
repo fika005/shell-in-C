@@ -12,14 +12,17 @@
 #include <string.h>
 #include "history.h"
 #include "logger.h"
+#include "clist.h"
 #include <unistd.h>
 #include "ui.h"
 #define USR_MAX 100
 #define PATH_MAX 200
-
+extern struct clist *list;
+extern int last_cmd_status;
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
 static bool scripting = false;
+static int key_up_count = 0;
 char *line = NULL;
 size_t line_sz = 0;
 char user_name[USR_MAX];
@@ -55,7 +58,7 @@ char *prompt_line(void)
     const char *status = prompt_status() ? bad_str : good_str;
 
     char cmd_num[25];
-    snprintf(cmd_num, 25, "%d", prompt_cmd_num());
+    snprintf(cmd_num, 25, "%u", prompt_cmd_num());
 
     char *user = prompt_username();
     char *host = prompt_hostname();
@@ -125,12 +128,12 @@ char *prompt_cwd(void)
 
 int prompt_status(void)
 {
-    return -1;
+    return last_cmd_status;
 }
 
 unsigned int prompt_cmd_num(void)
 {
-    return 0;
+    return hist_last_cnum();
 }
 
 char *read_command(void)
@@ -149,7 +152,7 @@ char *read_command(void)
             return line;
         }
     }
-    
+   return NULL;
 }
 
 int readline_init(void)
@@ -163,30 +166,34 @@ int readline_init(void)
 
 int key_up(int count, int key)
 {
-    /* Modify the command entry text: */
-    rl_replace_line("User pressed 'up' key", 1);
+    int max = list->insertions > list->capacity ? list->capacity : list->insertions;
+    if (key_up_count < max) {
+	key_up_count++;
+    }
+    char *command = strdup(hist_search_cnum(hist_last_cnum() - key_up_count + 1));
+    rl_replace_line(command, 1);
 
-    /* Move the cursor to the end of the line: */
+
     rl_point = rl_end;
-
-    // TODO: step back through the history until no more history entries are
-    // left. Once the end of the history is reached, stop updating the command
-    // line.
+    free(command);
 
     return 0;
 }
 
 int key_down(int count, int key)
 {
-    /* Modify the command entry text: */
-    rl_replace_line("User pressed 'down' key", 1);
+    char *command = strdup("");
+    if (key_up_count > 1) {
+	key_up_count--;
+	command = strdup(hist_search_cnum(hist_last_cnum() - key_up_count + 1));
+    } else if (key_up_count == 1) {
+	key_up_count--;
+    }
+    rl_replace_line(command, 1);
 
-    /* Move the cursor to the end of the line: */
+
     rl_point = rl_end;
-
-    // TODO: step forward through the history (assuming we have stepped back
-    // previously). Going past the most recent history command blanks out the
-    // command line to allow the user to type a new command.
+    free(command);
 
     return 0;
 }

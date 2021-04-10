@@ -10,8 +10,7 @@
 
 #include "history.h"
 #include "clist.h"
-
-struct clist *list = NULL;
+struct clist *list;
 
 void hist_init(unsigned int limit)
 {
@@ -69,6 +68,9 @@ const char *hist_search_cnum(int command_number)
 
 int hist_last_cnum(void)
 {
+    if (list == NULL) {
+	return 0;
+    }
     return list->insertions;
 }
 

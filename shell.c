@@ -23,6 +23,7 @@
 static size_t num_children = 0;
 static bool running = true;
 bool last_status = 0;
+int last_cmd_status = 0;
 
 void jobs_sigchld() {
     num_children--;
@@ -115,6 +116,7 @@ void process_command(char *command, struct elist *list) {
     } else {
 	int status;
 	wait(&status);
+	last_cmd_status = status;
 	elist_clear(list);
     }
 
@@ -125,19 +127,19 @@ int main(void)
     hist_init(HIST_LIM);
     signal(SIGINT, SIG_IGN);
     signal(SIGCHLD, jobs_sigchld);
-    struct elist *list = elist_create(0, sizeof(char **));
+    struct elist *tokens = elist_create(0, sizeof(char **));
     while (running) {
 	char *command;
 	command = read_command();
 	if (command == NULL) {
 	    break;
 	}
-	process_command(command, list);      
+	process_command(command, tokens);      
     }
     destroy_ui();
     jobs_destroy();
     hist_destroy();
-    elist_destroy(list);
+    elist_destroy(tokens);
 
     return 0;
 }

@@ -99,7 +99,7 @@ void *elist_add_new(struct elist *list)
 int elist_set(struct elist *list, size_t idx, void *item)
 {
     if (idx_is_valid(list, idx)) {
-        memcpy(list->element_storage + idx * list->item_sz, item, list->item_sz);
+        memcpy((char *) list->element_storage + idx * list->item_sz, item, list->item_sz);
         return 0;
     }
     return -1;
@@ -108,7 +108,7 @@ int elist_set(struct elist *list, size_t idx, void *item)
 void *elist_get(struct elist *list, size_t idx)
 {
     if(idx_is_valid(list, idx)){
-        return list->element_storage + idx * list->item_sz;
+        return (char *) list->element_storage + idx * list->item_sz;
     } else {
         return NULL;
     } 
@@ -165,5 +165,5 @@ void elist_sort(struct elist *list, int (*comparator)(const void *, const void *
 
 bool idx_is_valid(struct elist *list, size_t idx)
 {
-    return (idx >= 0 && idx < list->size);
+    return (idx < list->size);
 }

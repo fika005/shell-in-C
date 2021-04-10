@@ -6,11 +6,7 @@
 
 #ifndef _HISTORY_H_
 #define _HISTORY_H_
-
-struct command_run {
-     int status;
-     char* command;
-};
+extern struct clist *list;
 /**
  * Initializes the history management module and sets the number of history
  * items to be retained
